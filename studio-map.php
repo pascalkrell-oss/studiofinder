@@ -721,14 +721,17 @@ function sml_shortcode_output() {
             border-radius: 0;
             padding: 8px 0 6px 0;
             margin: 0 0 16px 0;
-            display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            gap: 18px;
             color: #0f141a;
             box-shadow: none;
         }
-        .sml-bh-left{ min-width: 0; }
+        .sml-bh-layout{
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .sml-bh-left{ min-width: 0; flex: 1; }
+        .sml-bh-right{ flex: 0 0 auto; max-width: 360px; }
         .sml-bh-title-row{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin:0 0 12px 0; }
         .sml-bh-left h2{
             margin: 0;
@@ -788,7 +791,7 @@ function sml_shortcode_output() {
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            line-height: 18.2px;
+            line-height: normal;
             color: rgb(255, 255, 255);
             text-decoration: none;
             white-space: nowrap;
@@ -798,9 +801,8 @@ function sml_shortcode_output() {
             color: #ffffff;
             border: 1px solid rgba(26,147,238,0.20);
             box-shadow: none;
-                        font-size: 14px;
+            font-size: 14px;
             font-weight: 500;
-            line-height: 18.2px;
             color: rgb(255, 255, 255);
         
             display: inline-flex;
@@ -814,8 +816,9 @@ function sml_shortcode_output() {
         }
         .sml-bh-secondary:hover{ transform: translateY(-1px); box-shadow: 0 12px 26px rgba(0,0,0,0.08); }
         @media (max-width: 860px){
-            #sml-beta-header{ flex-direction: column; align-items: stretch; }
+            .sml-bh-layout{ flex-direction: column; align-items: stretch; }
             .sml-bh-actions{ justify-content: flex-start; }
+            .sml-bh-right{ max-width: 100%; }
         }
 
         /* LEGAL FOOTER */
@@ -885,7 +888,7 @@ function sml_shortcode_output() {
         #sml-footer .sml-footer-credit{ justify-self: end; text-align: right; white-space: nowrap; }
         
         .sml-bh-notice{
-            margin-top: 12px;
+            margin: 0;
             padding: 12px 14px;
             border-radius: 12px;
             border: 1px solid rgba(26,147,238,0.18);
@@ -1347,20 +1350,22 @@ function sml_shortcode_output() {
     <div id="sml-container">
         
         <div id="sml-beta-header" role="banner">
-            <div class="sml-bh-left">
-                <div class="sml-bh-title-row">
-                    <h2>Studio-Finder</h2>
-                    <span class="sml-bh-badge">BETA</span>
+            <div class="sml-bh-layout">
+                <div class="sml-bh-left">
+                    <div class="sml-bh-title-row">
+                        <h2>Studio-Finder</h2>
+                        <span class="sml-bh-badge">BETA</span>
+                    </div>
+                    <p class="sml-bh-lead">
+                        Finde Synchronstudios, Tonstudios &amp; Agenturen in Deiner Nähe, filtere nach Leistungen und Ausstattung und plane Deine Route zum Studio in Sekunden.
+                    </p>
+                    <button type="button" class="sml-bh-primary sml-bh-feedback" onclick="smlOpenFeedbackModal()">Idee/Bug melden</button>
                 </div>
-                <p class="sml-bh-lead">
-                    Finde Synchronstudios, Tonstudios &amp; Agenturen in Deiner Nähe, filtere nach Leistungen und Ausstattung und plane Deine Route zum Studio in Sekunden.
-                </p>
-
-                <div class="sml-bh-notice" role="note" aria-label="Beta Hinweis">
-                    <strong>Hinweis:</strong> Studio Finder ist in der Beta - danke fürs Mithelfen beim Verbessern.
+                <div class="sml-bh-right">
+                    <div class="sml-bh-notice" role="note" aria-label="Beta Hinweis">
+                        Hinweis: Studio Finder ist in der Beta. Du bist herzlich eingeladen das System zu testen, neue Studios über den 'Studio eintragen' Button hinzuzufügen und uns Feedback zu geben.
+                    </div>
                 </div>
-
-                <button type="button" class="sml-bh-primary sml-bh-feedback" onclick="smlOpenFeedbackModal()">Idee/Bug melden</button>
             </div>
         </div>
 
@@ -2330,6 +2335,7 @@ function sml_shortcode_output() {
                          preSelectionZoom = map.getZoom();
                     }
                     map.flyTo([s.lat, s.lng], 16, { duration: 1.5 }); 
+                    document.getElementById('sml-map').scrollIntoView({behavior: 'smooth', block: 'center'});
                     m.openPopup(); 
                     highlightCard(s.id, false); 
                 };
