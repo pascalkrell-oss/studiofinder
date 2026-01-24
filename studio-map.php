@@ -1007,6 +1007,9 @@ function sml_shortcode_output() {
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
+        .sml-feedback-field label[for="sml-feedback-message"]{
+            margin-top: 15px;
+        }
         .sml-feedback-grid{
             display:grid;
             grid-template-columns: 1fr 1fr;
@@ -1210,8 +1213,9 @@ function sml_shortcode_output() {
         .sml-btn-flag:hover { color: #dc3232 !important; }
         
         /* Always visible map icon */
-        .sml-btn-map { opacity: 1 !important; color: #ccc; }
+        .sml-btn-map { opacity: 1 !important; color: var(--brand-blue) !important; }
         .sml-btn-map:hover { color: var(--brand-blue) !important; }
+        .sml-btn-map .dashicons{ color: inherit; }
 
         
         .sml-btn-map .dashicons{ font-size: 18px; width: 18px; height: 18px; }
@@ -1304,7 +1308,7 @@ function sml_shortcode_output() {
         .sml-table th:nth-child(3), .sml-table td:nth-child(3),
         .sml-table th:nth-child(4), .sml-table td:nth-child(4) { width: 1%; white-space: nowrap; }
         .sml-table th:nth-child(5), .sml-table td:nth-child(5) { width: auto; white-space: normal; word-break: break-word;}
-        .sml-table th:last-child, .sml-table td:last-child { width: 1%; white-space: nowrap; text-align: center; padding-left: 25px; padding-right: 15px; }
+        .sml-table th:last-child, .sml-table td:last-child { width: 1%; white-space: nowrap; text-align: left; padding-left: 15px; padding-right: 15px; }
         
         #sml-reset-btn { background: var(--brand-blue); color: #fff; border: none; padding: 0 30px; font-size: 14px; font-weight: 600; border-radius: 50px; cursor: pointer; height: 50px; box-shadow: 0 4px 10px rgba(26, 147, 238, 0.2); white-space: nowrap; display: flex; align-items: center; justify-content: center; line-height: 1; }
         #sml-reset-btn:hover { background: #137ecf; }
@@ -1316,6 +1320,8 @@ function sml_shortcode_output() {
         .sml-modal-content::-webkit-scrollbar-track { background: transparent; margin: 15px 0; }
         .sml-modal-content::-webkit-scrollbar-thumb { background-color: #ccc; border-radius: 10px; }
         @keyframes smlFadeIn { from {opacity: 0; transform: scale(0.95);} to {opacity: 1; transform: scale(1);} }
+        @keyframes smlFadeOut { to { opacity: 0; transform: scale(0.95); } }
+        .sml-modal-closing .sml-modal-content { animation: smlFadeOut 0.25s forwards; }
         .sml-close-modal { color: #888; position: absolute; top: 20px; right: 20px; font-size: 28px; cursor: pointer; line-height: 1; }
         .sml-upload-zone { border: 2px dashed var(--brand-blue); border-radius: 8px; padding: 15px; text-align: center; background: #f0f7ff; color: var(--brand-blue); cursor: pointer; position: relative; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .sml-upload-zone:hover { background: #e0f0ff; }
@@ -1359,11 +1365,11 @@ function sml_shortcode_output() {
                     <p class="sml-bh-lead">
                         Finde Synchronstudios, Tonstudios &amp; Agenturen in Deiner Nähe, filtere nach Leistungen und Ausstattung und plane Deine Route zum Studio in Sekunden.
                     </p>
-                    <button type="button" class="sml-bh-primary sml-bh-feedback" onclick="smlOpenFeedbackModal()">Idee/Bug melden</button>
+                    <button type="button" class="sml-bh-primary sml-bh-feedback" onclick="smlOpenFeedbackModal()">Feedback geben / Fehler melden</button>
                 </div>
                 <div class="sml-bh-right">
                     <div class="sml-bh-notice" role="note" aria-label="Beta Hinweis">
-                        Hinweis: Studio Finder ist in der Beta. Du bist herzlich eingeladen das System zu testen, neue Studios über den 'Studio eintragen' Button hinzuzufügen und uns Feedback zu geben.
+                        <strong>Hinweis:</strong> Studio Finder ist in der Beta. Du bist herzlich eingeladen das System zu testen, neue Studios über den 'Studio eintragen' Button hinzuzufügen und uns Feedback zu geben.
                     </div>
                 </div>
             </div>
@@ -1707,12 +1713,12 @@ function sml_shortcode_output() {
 
     <!-- Feedback Modal -->
     <div id="sml-feedback-modal" class="sml-modal" aria-hidden="true">
-        <div class="sml-modal-content sml-legal-modal sml-feedback-modal" role="dialog" aria-modal="true" aria-label="Idee oder Fehler melden">
+        <div class="sml-modal-content sml-legal-modal sml-feedback-modal" role="dialog" aria-modal="true" aria-label="Feedback geben oder Fehler melden">
             <button type="button" class="sml-modal-close" onclick="smlCloseFeedbackModal()" aria-label="Schließen">×</button>
-            <h3>Idee/Fehler melden</h3>
+            <h3>Feedback geben / Fehler melden</h3>
 
             <div class="sml-feedback-toggle" role="tablist" aria-label="Auswahl">
-                <button type="button" class="sml-toggle-btn is-active" data-kind="idea" onclick="smlSetFeedbackKind('idea')" role="tab" aria-selected="true">Idee einreichen</button>
+                <button type="button" class="sml-toggle-btn is-active" data-kind="idea" onclick="smlSetFeedbackKind('idea')" role="tab" aria-selected="true">Feedback geben</button>
                 <button type="button" class="sml-toggle-btn" data-kind="bug" onclick="smlSetFeedbackKind('bug')" role="tab" aria-selected="false">Fehler melden</button>
             </div>
 
@@ -1772,8 +1778,23 @@ function sml_shortcode_output() {
         }
     }
 
-    function openModal() { document.getElementById('sml-modal').style.display = 'flex'; document.body.classList.add('sml-modal-open'); }
-    function closeModal() { document.getElementById('sml-modal').style.display = 'none'; document.body.classList.remove('sml-modal-open'); }
+    function openModal() {
+        const modal = document.getElementById('sml-modal');
+        if(!modal) return;
+        modal.classList.remove('sml-modal-closing');
+        modal.style.display = 'flex';
+        document.body.classList.add('sml-modal-open');
+    }
+    function closeModal() {
+        const modal = document.getElementById('sml-modal');
+        if(!modal) return;
+        modal.classList.add('sml-modal-closing');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            modal.classList.remove('sml-modal-closing');
+            document.body.classList.remove('sml-modal-open');
+        }, 250);
+    }
     document.addEventListener('keydown', function(e) { if(e.key === "Escape") closeModal(); });
     window.onclick = function(e) { if(e.target === document.getElementById('sml-modal')) closeModal(); }
     
@@ -2356,16 +2377,22 @@ function sml_shortcode_output() {
         let cleanPlz = (plz || "").replace(/\s*\(\+\/- \d+m\)/, '');
         if(cleanPlz.length > 40) cleanPlz = cleanPlz.substring(0, 37) + '...';
 
-        userMarker = L.marker([lat, lng], {icon: redIcon}).addTo(map).bindPopup(`<div class="sml-user-popup-head">Dein Standort</div><div class="sml-user-popup-body"><div style="font-weight:600;font-size:14px;margin-bottom:5px;">${cleanPlz}</div><small style="color:#999">Suchradius-Mittelpunkt</small></div>`).openPopup();
-        
-        // AUTO CLOSE POPUP LOGIC
-        setTimeout(() => { 
-            if(userMarker && userMarker.getPopup().isOpen()) {
-                const el = userMarker.getPopup().getElement();
-                if(el) el.classList.add('sml-fade-out');
-                setTimeout(() => userMarker.closePopup(), 500); // Close after fade
-            }
-        }, 2500);
+        userMarker = L.marker([lat, lng], {icon: redIcon})
+            .addTo(map)
+            .bindPopup(`<div class="sml-user-popup-head">Dein Standort</div><div class="sml-user-popup-body"><div style="font-weight:600;font-size:14px;margin-bottom:5px;">${cleanPlz}</div><small style="color:#999">Suchradius-Mittelpunkt</small></div>`);
+
+        if(!preventZoom) {
+            userMarker.openPopup();
+
+            // AUTO CLOSE POPUP LOGIC
+            setTimeout(() => { 
+                if(userMarker && userMarker.getPopup().isOpen()) {
+                    const el = userMarker.getPopup().getElement();
+                    if(el) el.classList.add('sml-fade-out');
+                    setTimeout(() => userMarker.closePopup(), 500); // Close after fade
+                }
+            }, 2500);
+        }
 
         userCircle = L.circle([lat, lng], { color: '#1a93ee', fillColor: '#1a93ee', fillOpacity: 0.15, weight: 1, radius: rad*1000 }).addTo(map);
         if(!preventZoom) {
