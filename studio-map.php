@@ -762,14 +762,14 @@ function sml_shortcode_output() {
             font-size: 15px;
             line-height: 1.6;
             color: #27313b;
-            max-width: 820px;
+            max-width: 600px;
         }
         .sml-bh-sub{
             margin: 0;
             font-size: 13px;
             line-height: 1.6;
             color: #5b6670;
-            max-width: 860px;
+            max-width: 600px;
         }
         .sml-bh-actions{
             display:flex;
@@ -1047,7 +1047,7 @@ function sml_shortcode_output() {
             padding: 12px 16px;
             background: var(--brand-blue);
             color:#fff;
-            font-weight: 800;
+            font-weight: 600;
             cursor:pointer;
         }
         .sml-feedback-submit:hover{ filter: brightness(0.98); }
@@ -1369,7 +1369,7 @@ function sml_shortcode_output() {
                 </div>
                 <div class="sml-bh-right">
                     <div class="sml-bh-notice" role="note" aria-label="Beta Hinweis">
-                        <strong>Hinweis:</strong> Studio Finder ist in der Beta. Du bist herzlich eingeladen das System zu testen, neue Studios über den 'Studio eintragen' Button hinzuzufügen und uns Feedback zu geben.
+                        <strong>Hinweis:</strong> Studio Finder ist in der Beta. Du bist herzlich eingeladen das System zu testen, neue Studios über den 'Studio eintragen' Button hinzuzufügen und Feedback für das System zu geben.
                     </div>
                 </div>
             </div>
@@ -2106,7 +2106,23 @@ function sml_shortcode_output() {
         }
 
         const userPlz = document.getElementById('user-plz');
-        if(userPlz) { userPlz.addEventListener("keypress", e=>{if(e.key==="Enter")document.getElementById('sml-search-btn').click();}); }
+        if(userPlz) {
+            let plzDebounce;
+            userPlz.addEventListener('input', () => {
+                clearTimeout(plzDebounce);
+                plzDebounce = setTimeout(() => {
+                    const btn = document.getElementById('sml-search-btn');
+                    if(btn) btn.click();
+                }, 1000);
+            });
+            userPlz.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') {
+                    e.preventDefault();
+                    const btn = document.getElementById('sml-search-btn');
+                    if(btn) btn.click();
+                }
+            });
+        }
 
         const slider = document.getElementById('search-radius');
         if(slider) {
