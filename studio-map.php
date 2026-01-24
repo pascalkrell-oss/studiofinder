@@ -931,54 +931,28 @@ function sml_shortcode_output() {
         .sml-table th{
             top: -1px;
             background-color: #f4f6f8 !important;
+            z-index: 100;
             box-shadow: 0 2px 0 rgba(0,0,0,0.04);
             transform: translateZ(0);
+        }
+        .sml-table tbody{
+            position: relative;
+            z-index: 1;
         }
 
         /* MOBILE TABLE (RESPONSIVE CARD ROWS) */
         @media(max-width: 820px){
             .sml-table-scroll-wrapper{
                 max-height: none;
-                overflow: visible;
-                border: none;
-                box-shadow: none;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                border: 1px solid #eee;
+                box-shadow: 0 2px 15px rgba(0,0,0,0.05);
             }
             .sml-table{
-                display: block;
-                width: 100%;
-                border-collapse: separate;
-                border-spacing: 0 10px;
-                background: transparent;
-                font-size: 14.5px !important;
+                min-width: 800px;
             }
-            .sml-table thead{ display:none; }
-            .sml-table tbody{ display:block; width:100%; }
-            .sml-table tr{
-                display:block;
-                background:#fff;
-                border: 1px solid #eee;
-                border-radius: 12px;
-                padding: 12px 14px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-            }
-            .sml-table td{
-                display:block;
-                width:100%;
-                padding: 8px 0 !important;
-                border: none !important;
-            }
-            .sml-table td:before{
-                content: attr(data-label);
-                display:block;
-                font-size: 11px;
-                font-weight: 800;
-                color:#6b7280;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 4px;
-            }
-            .sml-row-actions{ margin-top: 8px; }
-            .sml-table td:last-child{ padding-bottom: 0 !important; }
         }
 
 /* FEEDBACK MODAL */
@@ -1207,9 +1181,9 @@ function sml_shortcode_output() {
         
         #sml-search-btn { background: var(--brand-blue); color: #fff; border: none; padding: 0 30px; font-size: 16px; font-weight: 600; border-radius: 50px; cursor: pointer; height: 50px; box-shadow: 0 4px 10px rgba(26, 147, 238, 0.2); white-space: nowrap; display: flex; align-items: center; justify-content: center; line-height: 1; }
         #sml-search-btn:hover { background: #137ecf; }
-        #sml-wrapper { display: flex; gap: 25px; height: 650px; margin-bottom: 50px; }
+        #sml-wrapper { display: flex; gap: 25px; height: auto; min-height: 600px; margin-bottom: 50px; }
         #sml-map { flex: 2; border-radius: 12px; border: 1px solid #ddd; z-index: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 100%; position: relative; }
-        #sml-list { flex: 1; overflow-y: auto; background: #fff; border: 1px solid #eee; border-radius: 12px; display: flex; flex-direction: column; scroll-behavior: smooth; }
+        #sml-list { flex: 1; overflow-y: auto; max-height: 600px; background: #fff; border: 1px solid #eee; border-radius: 12px; display: flex; flex-direction: column; scroll-behavior: smooth; }
         
         .sml-list-head { padding: 0 20px; height: 50px; min-height: 50px; max-height: 50px; background: #fff; border-bottom: 1px solid #eee; font-weight: 700; font-size: 16px; color: var(--brand-dark); position: sticky; top: 0; z-index: 10; display: flex; align-items: center; }
         #list-content { padding: 0 15px 15px !important; background: var(--bg-gray); flex-grow: 1; margin-top: 0 !important; }
@@ -1303,10 +1277,11 @@ function sml_shortcode_output() {
         .sml-table-search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; fill: #999; }
         #sml-table-filter { width: 100%; padding: 12px 15px 12px 40px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
         .sml-table-scroll-wrapper { width: 100%; overflow-y: auto; overflow-x: auto; max-height: 800px; border: 1px solid #eee; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        .sml-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14.5px !important; table-layout: auto; }
+        .sml-table { width: 100%; min-width: 800px; border-collapse: collapse; background: #fff; font-size: 14.5px !important; table-layout: auto; }
         
         /* INCREASED PADDING TO 15px */
-        .sml-table th { font-size: 14.5px !important; background: #f4f6f8; text-align: left; padding: 15px; color: #555; font-weight: 700; border-bottom: 2px solid #eee; cursor: pointer; position: sticky; top: 0; z-index: 50; box-shadow: 0 1px 1px rgba(0,0,0,0.05); background: #f4f6f8; background-clip: padding-box; }
+        .sml-table th { font-size: 14.5px !important; background: #f4f6f8; text-align: left; padding: 15px; color: #555; font-weight: 700; border-bottom: 2px solid #eee; cursor: pointer; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 0 rgba(0,0,0,0.05); background: #f4f6f8; background-clip: padding-box; }
+        .sml-table tbody { position: relative; z-index: 1; }
         .sml-table th.sml-sortable:hover { background: #eef2f5; color: var(--brand-blue); }
         .sml-table th.sml-sortable::after { content: " \21C5"; opacity: 0.4; font-size: 1.1em; margin-left: 5px; font-weight: normal; vertical-align: middle; }
         
@@ -1386,7 +1361,7 @@ function sml_shortcode_output() {
             #sml-controls { grid-template-columns: 1fr; } 
             #sml-wrapper { flex-direction: column !important; height: auto !important; } 
             #sml-map { height: 400px !important; min-height: 400px !important; width: 100% !important; } 
-            #sml-list { height: 400px !important; width: 100% !important; } 
+            #sml-list { max-height: 400px !important; width: 100% !important; } 
             .sml-table-scroll-wrapper { max-height: 600px; }
             .sml-table th, .sml-table td { font-size: 13px; padding: 10px; }
         }
@@ -1906,7 +1881,7 @@ function sml_shortcode_output() {
     }
     
     function applyGlobalFilter() {
-       if(currentLat && currentLng) performSearch(currentLat, currentLng, document.getElementById('user-plz').value, false);
+       if(currentLat && currentLng) performSearch(currentLat, currentLng, document.getElementById('user-plz').value, false, true);
        filterTableRows();
     }
 
@@ -2390,7 +2365,7 @@ function sml_shortcode_output() {
     }
 
     var userMarker, userCircle;
-    function performSearch(lat, lng, plz, save) {
+    function performSearch(lat, lng, plz, save, preventZoom = false) {
         currentLat=lat; currentLng=lng; const rad = parseInt(document.getElementById('search-radius').value);
         if(userMarker) map.removeLayer(userMarker); if(userCircle) map.removeLayer(userCircle);
         const redIcon = new L.Icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png', shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png', iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41] });
@@ -2410,7 +2385,9 @@ function sml_shortcode_output() {
         }, 2500);
 
         userCircle = L.circle([lat, lng], { color: '#1a93ee', fillColor: '#1a93ee', fillOpacity: 0.15, weight: 1, radius: rad*1000 }).addTo(map);
-        map.fitBounds(userCircle.getBounds());
+        if(!preventZoom) {
+            map.fitBounds(userCircle.getBounds());
+        }
         let found = 0;
         markers.forEach(m => {
             let s = globalStudioData.find(st => st.markerObj === m); if(!s) return; 
