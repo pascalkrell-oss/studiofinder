@@ -433,6 +433,12 @@ function sml_export_studios_handler() {
             $terms = [];
         }
 
+        $attachment_id = (int) get_post_thumbnail_id($id);
+        $image_url = $attachment_id ? wp_get_attachment_url($attachment_id) : '';
+        if (!$image_url) {
+            $image_url = get_the_post_thumbnail_url($id, 'full');
+        }
+
         $items[] = [
             'ID'          => (int) $id,
             'post_title'  => get_the_title($id),
@@ -452,8 +458,8 @@ function sml_export_studios_handler() {
                 '_sml_services_array' => get_post_meta($id, '_sml_services_array', true),
             ],
             'featured_image' => [
-                'attachment_id' => (int) get_post_thumbnail_id($id),
-                'url'           => get_the_post_thumbnail_url($id, 'full'),
+                'attachment_id' => $attachment_id,
+                'url'           => $image_url,
             ],
         ];
     }
@@ -472,6 +478,38 @@ function sml_export_studios_handler() {
     header('Content-Disposition: attachment; filename=' . $filename);
     echo wp_json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     exit;
+}
+
+function sml_ensure_media_includes() {
+    if (!function_exists('media_handle_sideload')) {
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+    }
+}
+
+function sml_find_attachment_by_filename($filename) {
+    global $wpdb;
+
+    $filename = sanitize_file_name($filename);
+    if ($filename === '') {
+        return 0;
+    }
+
+    $like = '%' . $wpdb->esc_like($filename) . '%';
+    $sql = $wpdb->prepare(
+        "SELECT posts.ID
+         FROM {$wpdb->posts} AS posts
+         INNER JOIN {$wpdb->postmeta} AS meta
+            ON posts.ID = meta.post_id
+         WHERE posts.post_type = 'attachment'
+           AND meta.meta_key = '_wp_attached_file'
+           AND meta.meta_value LIKE %s
+         LIMIT 1",
+        $like
+    );
+
+    return (int) $wpdb->get_var($sql);
 }
 
 function sml_import_studios_handler() {
@@ -572,7 +610,7 @@ function sml_import_studios_handler() {
                 $term_slugs = array_filter(array_map('sanitize_title', $row['taxonomies']['studio_category']));
                 $term_ids = [];
                 foreach ($term_slugs as $slug) {
-                    $existing = term_exists($slug, 'studio_category');
+                    $existing = get_term_by('slug', $slug, 'studio_category');
                     if (!$existing) {
                         $created_term = wp_insert_term(ucfirst($slug), 'studio_category', ['slug' => $slug]);
                         if (!is_wp_error($created_term)) {
@@ -580,13 +618,40 @@ function sml_import_studios_handler() {
                         }
                         continue;
                     }
-                    if (is_array($existing) && isset($existing['term_id'])) {
-                        $term_ids[] = (int) $existing['term_id'];
-                    } elseif (is_int($existing)) {
-                        $term_ids[] = $existing;
+                    if (isset($existing->term_id)) {
+                        $term_ids[] = (int) $existing->term_id;
                     }
                 }
-                wp_set_object_terms($target_id, $term_ids, 'studio_category', false);
+                if ($term_ids) {
+                    wp_set_object_terms($target_id, $term_ids, 'studio_category', false);
+                }
+            }
+
+            // Featured image (sideload if needed)
+            $image_url = isset($row['featured_image']['url']) ? esc_url_raw($row['featured_image']['url']) : '';
+            if ($image_url) {
+                $filename = wp_basename(parse_url($image_url, PHP_URL_PATH));
+                if ($filename) {
+                    $existing_attachment_id = sml_find_attachment_by_filename($filename);
+                    if ($existing_attachment_id) {
+                        set_post_thumbnail($target_id, $existing_attachment_id);
+                    } else {
+                        sml_ensure_media_includes();
+                        $tmp_file = download_url($image_url);
+                        if (!is_wp_error($tmp_file)) {
+                            $file_array = [
+                                'name'     => $filename,
+                                'tmp_name' => $tmp_file,
+                            ];
+                            $attachment_id = media_handle_sideload($file_array, $target_id);
+                            if (!is_wp_error($attachment_id)) {
+                                set_post_thumbnail($target_id, $attachment_id);
+                            } else {
+                                @unlink($tmp_file);
+                            }
+                        }
+                    }
+                }
             }
 
         } catch (Throwable $e) {
