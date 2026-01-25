@@ -1737,6 +1737,7 @@ function sml_shortcode_output() {
                 
                 <form id="sml-submission-form" enctype="multipart/form-data">
                     <?php wp_nonce_field('sml_submission_nonce', 'security'); ?>
+                    <input type="hidden" name="action" value="sml_submit_studio">
                     
                     <div class="sml-form-group">
                         <label>Name des Studios *</label>
