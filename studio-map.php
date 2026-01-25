@@ -1357,7 +1357,7 @@ function sml_shortcode_output() {
         .sml-table-tech { font-size: 11px; color: #777; line-height: 1.4; }
         
         .sml-badge-container { position: relative; display: inline-block; }
-        .sml-badge { background: #f0f7ff; color: var(--brand-blue); font-weight: 600; font-size: 11px; padding: 4px 10px; border-radius: 20px; cursor: pointer; border: 1px solid #dceeff; white-space: nowrap; }
+        .sml-badge { background: #f0f7ff; color: var(--brand-blue); font-weight: 600; font-size: 11px; padding: 4px 10px; border-radius: 20px; cursor: pointer; border: 1px solid #dceeff; white-space: nowrap; transition: all 0.3s ease; }
         .sml-badge:hover { background: var(--brand-blue); color: #fff; border-color: var(--brand-blue); }
         .sml-badge-container .sml-badge-popup { display: none !important; }
 
@@ -1365,10 +1365,33 @@ function sml_shortcode_output() {
             position: fixed; z-index: 2147483647; background: #fff;
             box-shadow: 0 5px 20px rgba(0,0,0,0.15); border-radius: 8px; 
             padding: 15px; border: 1px solid #eee; font-size: 12px; color: #333; 
-            line-height: 1.5; width: 280px; pointer-events: none; display: none;
-            white-space: normal; text-align: left;
+            line-height: 1.5; width: 280px; pointer-events: none; display: block;
+            white-space: normal; text-align: left; opacity: 0;
+            transition: opacity 0.2s ease; visibility: hidden;
         }
         #sml-tooltip-fixed::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; border-width: 6px; border-style: solid; border-color: #fff transparent transparent transparent; }
+        #sml-tooltip-fixed.is-visible { opacity: 1; visibility: visible; }
+
+        #sml-image-popup {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            width: 120px;
+            height: 80px;
+            background: #fff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border: 1px solid #eee;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            transform: translateY(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #sml-image-popup img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        #sml-image-popup.is-visible { opacity: 1; transform: translateY(0); }
 
         /* MAP TOAST NOTIFICATION */
         #sml-map-toast {
@@ -1536,7 +1559,7 @@ function sml_shortcode_output() {
                     </thead>
                     <tbody>
                         <?php foreach($studios as $s): ?>
-                        <tr id="studio-row-<?php echo $s['id']; ?>" class="studio-table-row" data-tech="<?php echo esc_attr(implode(',', $s['tech'])); ?>" data-services="<?php echo esc_attr(implode(',', $s['services'])); ?>">
+                        <tr id="studio-row-<?php echo $s['id']; ?>" class="studio-table-row" data-tech="<?php echo esc_attr(implode(',', $s['tech'])); ?>" data-services="<?php echo esc_attr(implode(',', $s['services'])); ?>" data-img="<?php echo esc_attr($s['image']); ?>">
                             <td data-label="Name"><strong><?php echo esc_html($s['title']); ?></strong>
                             <div class="sml-row-actions">
                                 <a href="mailto:<?php echo esc_attr($admin_email); ?>?subject=Änderungswunsch Studio: <?php echo rawurlencode($s['title']); ?>&body=Hallo, ich möchte eine Änderung für das Studio '<?php echo esc_attr($s['title']); ?>' (ID: <?php echo $s['id']; ?>) melden:%0D%0A%0D%0A" class="sml-ghost-btn sml-btn-flag" title="Eintrag melden/ändern"><span class="dashicons dashicons-flag"></span></a>
@@ -1692,6 +1715,7 @@ function sml_shortcode_output() {
     </div>
     
     <div id="sml-tooltip-fixed"></div>
+    <div id="sml-image-popup"><img src="" alt=""></div>
 
     <div id="sml-footer">
         <div class="sml-footer-links">
@@ -1997,13 +2021,32 @@ function sml_shortcode_output() {
             el.addEventListener('mouseenter', () => {
                 const content = el.querySelector('.sml-badge-popup').innerHTML;
                 tooltip.innerHTML = content;
-                tooltip.style.display = 'block';
                 const rect = el.getBoundingClientRect();
                 tooltip.style.left = (rect.left + (rect.width / 2) - 140) + 'px'; 
                 tooltip.style.top = (rect.top - tooltip.offsetHeight - 8) + 'px';
+                tooltip.classList.add('is-visible');
             });
             el.addEventListener('mouseleave', () => {
-                tooltip.style.display = 'none';
+                tooltip.classList.remove('is-visible');
+            });
+        });
+
+        const imagePopup = document.getElementById('sml-image-popup');
+        const imagePopupImg = imagePopup ? imagePopup.querySelector('img') : null;
+        document.querySelectorAll('.studio-table-row').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                if (!imagePopup || !imagePopupImg) return;
+                const imgSrc = row.getAttribute('data-img');
+                if (!imgSrc) return;
+                imagePopupImg.src = imgSrc;
+                const rect = row.getBoundingClientRect();
+                imagePopup.style.left = (rect.left + 20) + 'px';
+                imagePopup.style.top = (rect.top - 50) + 'px';
+                imagePopup.classList.add('is-visible');
+            });
+            row.addEventListener('mouseleave', () => {
+                if (!imagePopup) return;
+                imagePopup.classList.remove('is-visible');
             });
         });
 
