@@ -47,6 +47,91 @@ function sml_add_admin_menu() { add_submenu_page('edit.php?post_type=studio', 'G
 add_action('admin_menu', 'sml_add_admin_menu');
 
 // ----------------------------------------------------------------
+// 1B. ADMIN PREMIUM COLUMN + AJAX TOGGLE
+// ----------------------------------------------------------------
+function sml_add_studio_premium_column($columns) {
+    $new_columns = [];
+    foreach ($columns as $key => $label) {
+        $new_columns[$key] = $label;
+        if ($key === 'title') {
+            $new_columns['sml_premium'] = 'Premium';
+        }
+    }
+    if (!isset($new_columns['sml_premium'])) {
+        $new_columns['sml_premium'] = 'Premium';
+    }
+    return $new_columns;
+}
+add_filter('manage_edit-studio_columns', 'sml_add_studio_premium_column');
+
+function sml_render_studio_premium_column($column, $post_id) {
+    if ($column !== 'sml_premium') {
+        return;
+    }
+    $is_premium = get_post_meta($post_id, '_sml_is_premium', true);
+    printf(
+        '<input type="checkbox" class="sml-premium-toggle" data-post-id="%d" %s />',
+        (int) $post_id,
+        checked((bool) $is_premium, true, false)
+    );
+}
+add_action('manage_studio_posts_custom_column', 'sml_render_studio_premium_column', 10, 2);
+
+function sml_admin_premium_toggle_script() {
+    $screen = get_current_screen();
+    if (!$screen || $screen->post_type !== 'studio' || $screen->base !== 'edit') {
+        return;
+    }
+    $nonce = wp_create_nonce('sml_toggle_premium');
+    ?>
+    <script>
+    jQuery(document).ready(function($){
+        $(document).on('change', '.sml-premium-toggle', function(){
+            const checkbox = $(this);
+            const postId = checkbox.data('post-id');
+            const isChecked = checkbox.is(':checked') ? 1 : 0;
+            checkbox.prop('disabled', true);
+            $.post(ajaxurl, {
+                action: 'sml_toggle_premium',
+                post_id: postId,
+                is_premium: isChecked,
+                security: '<?php echo esc_js($nonce); ?>'
+            }).done(function(res){
+                if(!res || !res.success) {
+                    checkbox.prop('checked', !isChecked);
+                }
+            }).fail(function(){
+                checkbox.prop('checked', !isChecked);
+            }).always(function(){
+                checkbox.prop('disabled', false);
+            });
+        });
+    });
+    </script>
+    <?php
+}
+add_action('admin_footer-edit.php', 'sml_admin_premium_toggle_script');
+
+function sml_toggle_premium_handler() {
+    check_ajax_referer('sml_toggle_premium', 'security');
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+    $is_premium = isset($_POST['is_premium']) ? intval($_POST['is_premium']) : 0;
+
+    if (!$post_id || get_post_type($post_id) !== 'studio' || !current_user_can('edit_post', $post_id)) {
+        wp_send_json_error(['message' => 'Zugriff verweigert'], 403);
+    }
+
+    if ($is_premium) {
+        update_post_meta($post_id, '_sml_is_premium', 1);
+    } else {
+        delete_post_meta($post_id, '_sml_is_premium');
+    }
+
+    wp_send_json_success(['is_premium' => (bool) $is_premium]);
+}
+add_action('wp_ajax_sml_toggle_premium', 'sml_toggle_premium_handler');
+
+// ----------------------------------------------------------------
 // 2. LIVE CHECK AJAX
 // ----------------------------------------------------------------
 add_action('wp_ajax_sml_live_check_duplicate', 'sml_live_check_duplicate_handler');
@@ -763,13 +848,16 @@ function sml_shortcode_output() {
 
             $website = get_post_meta(get_the_ID(), '_sml_website', true);
 
+            $is_premium = (bool) get_post_meta(get_the_ID(), '_sml_is_premium', true);
+
             $studios[] = array(
                 'id' => get_the_ID(), 'title' => get_the_title(), 'url' => $website,
                 'lat' => floatval(get_post_meta(get_the_ID(), '_sml_lat', true)), 'lng' => floatval(get_post_meta(get_the_ID(), '_sml_lng', true)),
                 'address' => $addr, 'city' => $pure_city, 'full_city' => $full_city,
                 'phone' => get_post_meta(get_the_ID(), '_sml_phone', true), 'email' => get_post_meta(get_the_ID(), '_sml_email', true),
                 'image' => get_the_post_thumbnail_url(get_the_ID(), 'medium'), 'cats' => $cat_names, 
-                'tech' => $tech_arr, 'services' => $service_arr
+                'tech' => $tech_arr, 'services' => $service_arr,
+                'is_premium' => $is_premium
             );
         }
         wp_reset_postdata();
@@ -1252,6 +1340,8 @@ function sml_shortcode_output() {
         .studio-item:first-child { margin-top: 20px !important; }
         .studio-item:hover { border-color: var(--brand-blue); background: #fff; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
         .studio-item.active-card { border-left: 5px solid var(--brand-blue); background: #f0f7ff; box-shadow: 0 8px 20px rgba(26, 147, 238, 0.15); }
+        .studio-item.is-premium { border-left: 4px solid #FFD700; background: linear-gradient(to right, #fffbf0, #fff); }
+        .studio-item.is-premium::before { content: "Premium"; position: absolute; top: 10px; right: 10px; background: #FFD700; color: #6b5200; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 8px; border-radius: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); }
         .studio-item::after { content: attr(data-cat); position: absolute; top: -10px; right: 10px; background: #222; color: #fff; font-size: 10px; padding: 4px 8px; border-radius: 4px; opacity: 0; transition: all 0.2s; pointer-events: none; font-weight: 600; text-transform: uppercase; transform: translateY(5px); }
         .studio-item[data-cat=""]::after { display: none; }
         .studio-item:hover::after { opacity: 1; transform: translateY(0); }
@@ -1350,6 +1440,8 @@ function sml_shortcode_output() {
         .sml-table td { font-size: 14.5px !important; padding: 15px; border-bottom: 1px solid #eee; color: #444; vertical-align: middle; word-wrap: break-word; }
         .sml-table tr:hover td { background: #f9fbff; }
         .sml-table a { font-size: 14.5px !important; color: var(--brand-blue); text-decoration: none; font-weight: 500; }
+        .studio-table-row.is-premium td { background-color: #fffae6; font-weight: 600; }
+        .sml-premium-star { color: #FFD700; margin-right: 6px; vertical-align: text-bottom; }
         
         /* VISIT LINK SIZE (Matched Global) */
         .sml-table td:last-child a { font-size: 15.2px !important; }
@@ -1559,8 +1651,8 @@ function sml_shortcode_output() {
                     </thead>
                     <tbody>
                         <?php foreach($studios as $s): ?>
-                        <tr id="studio-row-<?php echo $s['id']; ?>" class="studio-table-row" data-tech="<?php echo esc_attr(implode(',', $s['tech'])); ?>" data-services="<?php echo esc_attr(implode(',', $s['services'])); ?>" data-img="<?php echo esc_attr($s['image']); ?>">
-                            <td data-label="Name"><strong><?php echo esc_html($s['title']); ?></strong>
+                        <tr id="studio-row-<?php echo $s['id']; ?>" class="studio-table-row <?php echo $s['is_premium'] ? 'is-premium' : ''; ?>" data-tech="<?php echo esc_attr(implode(',', $s['tech'])); ?>" data-services="<?php echo esc_attr(implode(',', $s['services'])); ?>" data-img="<?php echo esc_attr($s['image']); ?>" data-premium="<?php echo $s['is_premium'] ? '1' : '0'; ?>">
+                            <td data-label="Name"><strong><?php if ($s['is_premium']) : ?><span class="dashicons dashicons-star-filled sml-premium-star" aria-hidden="true"></span><?php endif; ?><?php echo esc_html($s['title']); ?></strong>
                             <div class="sml-row-actions">
                                 <a href="mailto:<?php echo esc_attr($admin_email); ?>?subject=Änderungswunsch Studio: <?php echo rawurlencode($s['title']); ?>&body=Hallo, ich möchte eine Änderung für das Studio '<?php echo esc_attr($s['title']); ?>' (ID: <?php echo $s['id']; ?>) melden:%0D%0A%0D%0A" class="sml-ghost-btn sml-btn-flag" title="Eintrag melden/ändern"><span class="dashicons dashicons-flag"></span></a>
                             </div>
@@ -2451,9 +2543,29 @@ function sml_shortcode_output() {
         const list = document.getElementById('list-content'); 
         if(!list) return;
         list.innerHTML = '';
+        const blueIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
+        const goldIcon = new L.Icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor: [1, -34],
+            shadowSize: [41, 41]
+        });
         data.forEach(s => {
             if(s.lat && s.lng) {
-                const m = L.marker([s.lat, s.lng]).addTo(map); 
+                const markerIcon = s.is_premium ? goldIcon : blueIcon;
+                const m = L.marker([s.lat, s.lng], {
+                    icon: markerIcon,
+                    zIndexOffset: s.is_premium ? 2000 : 0
+                }).addTo(map); 
                 
                 let initialOpacity = 1;
                 if(userCircle && currentLat) {
@@ -2462,7 +2574,9 @@ function sml_shortcode_output() {
                      initialOpacity = (d <= rad) ? 1 : 0.5;
                 }
                 m.setOpacity(initialOpacity);
-                L.DomUtil.addClass(m._icon, 'sml-marker-blue');
+                if (m._icon && !s.is_premium) {
+                    L.DomUtil.addClass(m._icon, 'sml-marker-blue');
+                }
                 
                 m.on('click', function() {
                     isInternalNavigation = true;
@@ -2484,6 +2598,9 @@ function sml_shortcode_output() {
                 
                 m.bindPopup(popupHtml); s.markerObj = m; markers.push(m);
                 const div = document.createElement('div'); div.className = 'studio-item'; div.id = 'studio-card-' + s.id;
+                if (s.is_premium) {
+                    div.classList.add('is-premium');
+                }
                 div.setAttribute('data-cat', s.cats.length ? s.cats[0] : ''); 
                 div.onclick = () => { 
                     isInternalNavigation = true;
@@ -2541,12 +2658,12 @@ function sml_shortcode_output() {
             
             if(d <= rad) { 
                 m.setOpacity(1); 
-                m.setZIndexOffset(1000); 
+                m.setZIndexOffset(s.is_premium ? 2000 : 1000); 
                 if(listEl) { listEl.style.display = 'flex'; listEl.querySelector('.dist').innerHTML = d.toFixed(1) + ' km entfernt'; listEl.querySelector('.dist').style.display = 'inline-block'; } 
                 found++; 
             } else { 
                 m.setOpacity(0.5); 
-                m.setZIndexOffset(0);
+                m.setZIndexOffset(s.is_premium ? 2000 : 0);
                 if(listEl) listEl.style.display = 'none'; 
             }
         });
