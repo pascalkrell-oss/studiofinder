@@ -1051,13 +1051,12 @@ function sml_shortcode_output() {
         }
         @media (max-width: 860px){
             #sml-footer{
-                grid-template-columns: 1fr;
-                text-align: center;
-                width: 100%;
+                width: auto !important;
+                max-width: 100%;
                 box-sizing: border-box;
-                margin-left: 0;
-                margin-right: 0;
-                max-width: none;
+                margin: 20px 0 0 0;
+                display: grid;
+                grid-template-columns: 1fr;
             }
             #sml-footer .sml-footer-links{ justify-content:center; justify-self:center; }
             #sml-footer .sml-footer-meta{ justify-self:center; }
