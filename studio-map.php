@@ -429,6 +429,9 @@ function sml_export_studios_handler() {
     $items = [];
     foreach ($q->posts as $id) {
         $terms = wp_get_post_terms($id, 'studio_category', ['fields' => 'slugs']);
+        if (is_wp_error($terms)) {
+            $terms = [];
+        }
 
         $items[] = [
             'ID'          => (int) $id,
@@ -565,16 +568,16 @@ function sml_import_studios_handler() {
             }
 
             // Terms
-            if (!empty($row['terms']['studio_category']) && is_array($row['terms']['studio_category'])) {
+            if (array_key_exists('studio_category', $row['terms'] ?? []) && is_array($row['terms']['studio_category'])) {
                 $term_slugs = array_map('sanitize_title', $row['terms']['studio_category']);
                 $term_ids = [];
                 foreach ($term_slugs as $slug) {
                     $t = get_term_by('slug', $slug, 'studio_category');
-                    if ($t && !is_wp_error($t)) $term_ids[] = (int) $t->term_id;
+                    if ($t && !is_wp_error($t)) {
+                        $term_ids[] = (int) $t->term_id;
+                    }
                 }
-                if (!empty($term_ids)) {
-                    wp_set_object_terms($target_id, $term_ids, 'studio_category', false);
-                }
+                wp_set_object_terms($target_id, $term_ids, 'studio_category', false);
             }
 
         } catch (Throwable $e) {
