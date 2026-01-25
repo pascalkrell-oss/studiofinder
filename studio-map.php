@@ -438,7 +438,7 @@ function sml_export_studios_handler() {
             'post_title'  => get_the_title($id),
             'post_content'=> get_post_field('post_content', $id),
             'post_status' => get_post_status($id),
-            'terms'       => [
+            'taxonomies'  => [
                 'studio_category' => is_array($terms) ? array_values($terms) : [],
             ],
             'meta'        => [
@@ -568,13 +568,22 @@ function sml_import_studios_handler() {
             }
 
             // Terms
-            if (array_key_exists('studio_category', $row['terms'] ?? []) && is_array($row['terms']['studio_category'])) {
-                $term_slugs = array_map('sanitize_title', $row['terms']['studio_category']);
+            if (array_key_exists('studio_category', $row['taxonomies'] ?? []) && is_array($row['taxonomies']['studio_category'])) {
+                $term_slugs = array_filter(array_map('sanitize_title', $row['taxonomies']['studio_category']));
                 $term_ids = [];
                 foreach ($term_slugs as $slug) {
-                    $t = get_term_by('slug', $slug, 'studio_category');
-                    if ($t && !is_wp_error($t)) {
-                        $term_ids[] = (int) $t->term_id;
+                    $existing = term_exists($slug, 'studio_category');
+                    if (!$existing) {
+                        $created_term = wp_insert_term(ucfirst($slug), 'studio_category', ['slug' => $slug]);
+                        if (!is_wp_error($created_term)) {
+                            $term_ids[] = (int) $created_term['term_id'];
+                        }
+                        continue;
+                    }
+                    if (is_array($existing) && isset($existing['term_id'])) {
+                        $term_ids[] = (int) $existing['term_id'];
+                    } elseif (is_int($existing)) {
+                        $term_ids[] = $existing;
                     }
                 }
                 wp_set_object_terms($target_id, $term_ids, 'studio_category', false);
