@@ -1053,6 +1053,11 @@ function sml_shortcode_output() {
             #sml-footer{
                 grid-template-columns: 1fr;
                 text-align: center;
+                width: 100%;
+                box-sizing: border-box;
+                margin-left: 0;
+                margin-right: 0;
+                max-width: none;
             }
             #sml-footer .sml-footer-links{ justify-content:center; justify-self:center; }
             #sml-footer .sml-footer-meta{ justify-self:center; }
@@ -1366,7 +1371,7 @@ function sml_shortcode_output() {
         .leaflet-popup-content-wrapper { border-radius: 8px; padding: 0; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: none; background: #fff; }
         .leaflet-popup-content { margin: 0; width: 280px !important; line-height: 1.5; }
         .leaflet-container a.leaflet-popup-close-button { top: 10px; right: 10px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.3); z-index: 30; }
-        .sml-popup-header-img { height: 80px; background-size: contain; background-position: center; background-repeat: no-repeat; background-color: #ffffff; border-bottom: 1px solid #eee; margin-bottom: 0; position: relative; }
+        .sml-popup-header-img { height: 100px; background-size: contain; background-position: center; background-repeat: no-repeat; background-color: #fff; padding: 15px; background-origin: content-box; border-bottom: 1px solid #eee; margin-bottom: 0; position: relative; }
         .sml-popup-no-img { height: 50px; background: var(--brand-blue); display:flex; align-items:center; justify-content:center; }
         .sml-popup-body { padding: 15px; }
         .sml-popup-title { font-size: 16px; font-weight: 700; color: var(--brand-dark); margin-bottom: 2px; }
