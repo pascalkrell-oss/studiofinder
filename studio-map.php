@@ -1349,7 +1349,12 @@ function sml_shortcode_output() {
         #sml-map { flex: 2; border-radius: 12px; border: 1px solid #ddd; z-index: 1; box-shadow: 0 4px 15px rgba(0,0,0,0.05); min-height: 100%; position: relative; }
         #sml-list { flex: 1; overflow-y: auto; max-height: 600px; background: #fff; border: 1px solid #eee; border-radius: 12px; display: flex; flex-direction: column; scroll-behavior: smooth; }
         
-        .sml-list-head { padding: 0 20px; height: 50px; min-height: 50px; max-height: 50px; background: #fff; border-bottom: 1px solid #eee; font-weight: 700; font-size: 16px; color: var(--brand-dark); position: sticky; top: 0; z-index: 10; display: flex; align-items: center; }
+        .sml-list-head { background: var(--btn-dark); color: #fff; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 9px 14px; min-height: 44px; border-radius: 12px 12px 0 0; border-bottom: 1px solid rgba(148,163,184,0.3); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; overflow: hidden; }
+        .sml-list-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, rgba(26,147,238,0.85), rgba(0,102,179,0.65), transparent); pointer-events: none; }
+        .sml-title-main { display: inline-flex; align-items: center; gap: 8px; }
+        .sml-title-icon { color: rgba(255,255,255,0.85); font-size: 16px; line-height: 1; }
+        .sml-title-text { color: rgba(255,255,255,0.92); }
+        .sml-title-meta, #sml-hit-count { color: rgba(255,255,255,0.78); white-space: nowrap; }
         #list-content { padding: 0 15px 15px !important; background: var(--bg-gray); flex-grow: 1; margin-top: 0 !important; }
         
         .studio-item { margin-top: 10px; position: relative; background: #fff; padding: 15px; border-radius: 10px; margin-bottom: 12px; cursor: pointer; border: 1px solid #eee; box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; gap: 15px; align-items: flex-start; text-align: left; transition: all 0.3s ease; }
@@ -1446,10 +1451,11 @@ function sml_shortcode_output() {
         .sml-table { width: 100%; min-width: 1000px; border-collapse: separate; border-spacing: 0; background: #fff; font-size: 14.5px !important; table-layout: auto; }
         
         /* INCREASED PADDING TO 15px */
-        .sml-table th { font-size: 14.5px !important; background: #f4f6f8; text-align: left; padding: 15px; color: #555; font-weight: 700; border-bottom: 1px solid #eee; cursor: pointer; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 0 rgba(0,0,0,0.05); background-clip: padding-box; }
+        .sml-table th { font-size: 12px !important; background: var(--btn-dark); text-align: left; padding: 15px; color: rgba(255,255,255,0.92); font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid rgba(148,163,184,0.3); cursor: pointer; position: sticky; top: 0; z-index: 100; box-shadow: 0 1px 2px rgba(0,0,0,0.08); background-clip: padding-box; position: relative; }
+        .sml-table th::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, rgba(26,147,238,0.85), rgba(0,102,179,0.65), transparent); pointer-events: none; }
         .sml-table tbody { position: relative; z-index: 1; }
-        .sml-table th.sml-sortable:hover { background: #eef2f5; color: var(--brand-blue); }
-        .sml-table th.sml-sortable::after { content: " \21C5"; opacity: 0.4; font-size: 1.1em; margin-left: 5px; font-weight: normal; vertical-align: middle; }
+        .sml-table th.sml-sortable:hover { background: #121a22; color: #fff; }
+        .sml-table th.sml-sortable::after { content: " \21C5"; opacity: 1; color: rgba(255,255,255,0.7); font-size: 1.1em; margin-left: 5px; font-weight: normal; vertical-align: middle; }
         
         /* INCREASED PADDING TO 15px */
         .sml-table td { font-size: 14.5px !important; padding: 15px; border-bottom: 1px solid #eee; color: #444; vertical-align: middle; word-wrap: break-word; }
@@ -1637,7 +1643,13 @@ function sml_shortcode_output() {
                  <div id="sml-map-toast"><span class="dashicons dashicons-location-alt"></span> <span id="sml-toast-text">0 Studios</span></div>
             </div>
             <div id="sml-list">
-                <div class="sml-list-head" id="list-header">Ergebnisse</div>
+                <div class="sml-list-head" id="list-header">
+                    <span class="sml-title-main">
+                        <span class="dashicons dashicons-list-view sml-title-icon" aria-hidden="true"></span>
+                        <span class="sml-title-text">Ergebnisse</span>
+                    </span>
+                    <span class="sml-title-meta" id="sml-hit-count">0 Treffer</span>
+                </div>
                 <div id="list-content" style="color:#777; text-align:center; padding-top:40px;">
                     <p>Gib deinen Standort ein,<br>um Studios zu finden.</p>
                 </div>
@@ -2634,7 +2646,9 @@ function sml_shortcode_output() {
                 list.appendChild(div); s.listItem = div; 
             }
         });
-        if(document.getElementById('list-header')) document.getElementById('list-header').innerText = markers.length + ' Treffer';
+        const hitCountEl = document.getElementById('sml-hit-count');
+        if(hitCountEl) hitCountEl.textContent = markers.length + ' Treffer';
+        else if(document.getElementById('list-header')) document.getElementById('list-header').textContent = markers.length + ' Treffer';
     }
 
     var userMarker, userCircle;
@@ -2683,7 +2697,9 @@ function sml_shortcode_output() {
                 if(listEl) listEl.style.display = 'none'; 
             }
         });
-        if(document.getElementById('list-header')) document.getElementById('list-header').innerText = found + ' Treffer';
+        const hitCountEl = document.getElementById('sml-hit-count');
+        if(hitCountEl) hitCountEl.textContent = found + ' Treffer';
+        else if(document.getElementById('list-header')) document.getElementById('list-header').textContent = found + ' Treffer';
         
         // SHOW TOAST
         const toast = document.getElementById('sml-map-toast');
